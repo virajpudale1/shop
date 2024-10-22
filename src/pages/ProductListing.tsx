@@ -1,66 +1,67 @@
-import React, { useState } from 'react';
-import { Filter, Star } from 'lucide-react';
+import React from 'react';
+import { CartItem } from '../types';
 
-// Mock data for products
-const mockProducts = [
-  { id: 1, name: 'Organic Apples', price: 2.99, rating: 4.5, image: 'https://source.unsplash.com/featured/?apple' },
-  { id: 2, name: 'Fresh Milk', price: 3.49, rating: 4.2, image: 'https://source.unsplash.com/featured/?milk' },
-  { id: 3, name: 'Whole Grain Bread', price: 4.99, rating: 4.7, image: 'https://source.unsplash.com/featured/?bread' },
-  { id: 4, name: 'Free Range Eggs', price: 5.99, rating: 4.8, image: 'https://source.unsplash.com/featured/?eggs' },
-  { id: 5, name: 'Organic Spinach', price: 3.99, rating: 4.3, image: 'https://source.unsplash.com/featured/?spinach' },
-  { id: 6, name: 'Grass-fed Beef', price: 12.99, rating: 4.6, image: 'https://source.unsplash.com/featured/?beef' },
-];
-
-interface ProductListingProps {
-  addToCart: (productId: number) => void;
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  unit: string;
 }
 
+interface ProductListingProps {
+  addToCart: (product: CartItem) => void;
+}
+
+const mockProducts: Product[] = [
+  { 
+    id: 1, 
+    name: 'Organic Strawberries', 
+    price: 4.99, 
+    image: 'https://images.unsplash.com/photo-1518635017498-87f514b751ba?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    unit: '1 lb' 
+  },
+  { 
+    id: 2, 
+    name: 'Organic Blueberries', 
+    price: 5.99, 
+    image: 'https://images.unsplash.com/photo-1624244245044-3276904951c4?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    unit: '1 lb' 
+  },
+  { 
+    id: 3, 
+    name: 'Organic Raspberries', 
+    price: 6.99, 
+    image: 'https://images.unsplash.com/photo-1577069861033-55d04cec4ef5?q=80&w=2076&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    unit: '1 lb' 
+  },
+  { 
+    id: 4, 
+    name: 'Organic Blackberries', 
+    price: 7.99, 
+    image: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    unit: '1 lb' 
+  },
+];
+
 const ProductListing: React.FC<ProductListingProps> = ({ addToCart }) => {
-  const [showFilters, setShowFilters] = useState(false);
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800">Products</h1>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300"
-        >
-          <Filter size={20} />
-          <span>Filters</span>
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {showFilters && (
-          <div className="md:col-span-1 space-y-4">
-            {/* ... (filter content remains the same) ... */}
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Products</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {mockProducts.map((product) => (
+          <div key={product.id} className="border p-4 rounded-lg shadow">
+            <img src={product.image} alt={product.name} className="w-full h-48 object-cover mb-4 rounded" />
+            <h3 className="font-bold text-lg mb-2">{product.name}</h3>
+            <p className="text-gray-600 mb-2">${product.price.toFixed(2)} / {product.unit}</p>
+            <button 
+              onClick={() => addToCart({ ...product, quantity: 1 })}
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300"
+            >
+              Add to Cart
+            </button>
           </div>
-        )}
-
-        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ${showFilters ? 'md:col-span-3' : 'md:col-span-4'}`}>
-          {mockProducts.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
-              <div className="p-4">
-                <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                <div className="flex justify-between items-center">
-                  <span className="text-green-600 font-bold">${product.price.toFixed(2)}</span>
-                  <div className="flex items-center">
-                    <Star size={16} className="text-yellow-400 fill-current mr-1" />
-                    <span>{product.rating}</span>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => addToCart(product.id)}
-                  className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-300"
-                >
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        ))}
       </div>
     </div>
   );

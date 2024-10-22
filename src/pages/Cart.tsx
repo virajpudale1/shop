@@ -1,74 +1,115 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-// Mock product data (in a real app, this would come from an API or database)
-const mockProducts = [
-  { id: 1, name: 'Organic Apples', price: 2.99, image: 'https://source.unsplash.com/featured/?apple' },
-  { id: 2, name: 'Fresh Milk', price: 3.49, image: 'https://source.unsplash.com/featured/?milk' },
-  { id: 3, name: 'Whole Grain Bread', price: 4.99, image: 'https://source.unsplash.com/featured/?bread' },
-  { id: 4, name: 'Free Range Eggs', price: 5.99, image: 'https://source.unsplash.com/featured/?eggs' },
-  { id: 5, name: 'Organic Spinach', price: 3.99, image: 'https://source.unsplash.com/featured/?spinach' },
-  { id: 6, name: 'Grass-fed Beef', price: 12.99, image: 'https://source.unsplash.com/featured/?beef' },
-];
+interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  unit: string;
+}
 
 interface CartProps {
-  cart: { id: number; quantity: number }[];
-  setCart: React.Dispatch<React.SetStateAction<{ id: number; quantity: number }[]>>;
+  cart: CartItem[];
+  setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
 }
 
 const Cart: React.FC<CartProps> = ({ cart, setCart }) => {
   const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity === 0) {
-      setCart(cart.filter(item => item.id !== id));
-    } else {
-      setCart(cart.map(item => item.id === id ? { ...item, quantity: newQuantity } : item));
-    }
+    setCart(cart.map(item => 
+      item.id === id ? { ...item, quantity: Math.max(0, newQuantity) } : item
+    ).filter(item => item.quantity > 0));
   };
 
-  const totalPrice = cart.reduce((total, item) => {
-    const product = mockProducts.find(p => p.id === item.id);
-    return total + (product ? product.price * item.quantity : 0);
-  }, 0);
+  const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
   if (cart.length === 0) {
     return (
-      <div className="text-center">
-        <h1 className="text-3xl font-bold mb-4">Your Cart</h1>
-        <p>Your shopping cart is empty.</p>
-        <Link to="/products" className="text-green-600 hover:underline">Continue Shopping</Link>
+      <div className="max-w-[920px] mx-auto text-center py-12">
+        <h2 className="text-2xl font-bold mb-4">Your cart</h2>
+        <p className="text-lg">The cart is empty</p>
+        <Link to="/products" className="text-blue-600 hover:underline mt-4 inline-block">
+          Continue Shopping
+        </Link>
       </div>
     );
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-4">Your Cart</h1>
-      <div className="space-y-4">
-        {cart.map(item => {
-          const product = mockProducts.find(p => p.id === item.id);
-          if (!product) return null;
-          return (
-            <div key={item.id} className="flex items-center space-x-4 border-b pb-4">
-              <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded" />
-              <div className="flex-grow">
-                <h3 className="font-semibold">{product.name}</h3>
-                <p className="text-gray-600">${product.price.toFixed(2)} each</p>
+    <div className="max-w-[920px] mx-auto">
+      <h2 className="text-2xl font-bold mb-4">Your cart</h2>
+      <div className="flex gap-6">
+        <div className="flex-grow">
+          {cart.map((item) => (
+            <div key={item.id} className="flex items-center justify-between py-4 border-b">
+              <div className="flex items-center">
+                <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded mr-4" />
+                <div>
+                  <h3 className="font-semibold">{item.name}</h3>
+                  <p className="text-gray-600">${item.price.toFixed(2)} / {item.unit}</p>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-2 py-1 bg-gray-200 rounded">-</button>
-                <span>{item.quantity}</span>
-                <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="px-2 py-1 bg-gray-200 rounded">+</button>
+              <div className="flex items-center">
+                <button 
+                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  className="bg-gray-200 text-gray-800 px-2 py-1 rounded-l"
+                >
+                  -
+                </button>
+                <span className="px-4 py-1 bg-gray-100">
+                  {item.quantity}
+                </span>
+                <button 
+                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  className="bg-gray-200 text-gray-800 px-2 py-1 rounded-r"
+                >
+                  +
+                </button>
               </div>
-              <p className="font-semibold">${(product.price * item.quantity).toFixed(2)}</p>
             </div>
-          );
-        })}
-      </div>
-      <div className="mt-8 flex justify-between items-center">
-        <p className="text-xl font-bold">Total: ${totalPrice.toFixed(2)}</p>
-        <Link to="/checkout" className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
-          Proceed to Checkout
-        </Link>
+          ))}
+        </div>
+        <div className="w-[360px]">
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h3 className="font-bold mb-2">Delivery details</h3>
+            <p className="text-gray-600 mb-2">Thu, 8:30 AM - 9:30 AM</p>
+            <button className="text-blue-600 mb-4">Change</button>
+            
+            <h3 className="font-bold mb-2">Promo codes</h3>
+            <input
+              type="text"
+              placeholder="Enter code"
+              className="w-full p-2 border rounded mb-4"
+            />
+            
+            <h3 className="font-bold mb-2">Add a gift message</h3>
+            <button className="w-full bg-gray-200 text-gray-800 py-2 rounded mb-4">
+              Add gift message
+            </button>
+            
+            <h3 className="font-bold mb-2">Your item will be delivered by</h3>
+            <div className="flex items-center mb-4">
+              <img src="https://placekitten.com/40/40" alt="Delivery Person" className="rounded-full mr-2" />
+              <div>
+                <p>Thu, 8:30 AM - 9:30 AM</p>
+                <p className="text-gray-600">Delivery</p>
+              </div>
+            </div>
+            
+            <div className="border-t pt-4">
+              <div className="flex justify-between mb-2">
+                <span className="font-semibold">Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              <Link to="/checkout">
+                <button className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition duration-300">
+                  Checkout
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
